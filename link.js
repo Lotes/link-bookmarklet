@@ -219,7 +219,7 @@ Link.prototype = {
   onAnimationEnded: function(callback) {
     this.callback = callback;
   },
-  tick: function() {
+  tick: function(collisionNet) {
     var animationLength = animations[this.direction][this.state].frames.length;
     if(animationLength > 1 && this.frameIndex+1 == animationLength)
       this.triggerAnimationEnded();
@@ -227,8 +227,16 @@ Link.prototype = {
       this.frameIndex = (this.frameIndex+1) % animationLength;
     var length = Math.sqrt(Math.pow(this.velocity[0], 2)+Math.pow(this.velocity[1], 2));
     if(length > 0 && this.state !== 'SPIN') {
-      this.x += this.velocity[0] / length * this.speed;
-      this.y += this.velocity[1] / length * this.speed;
+      var frame = animations[this.direction][this.state].frames[this.frameIndex];
+      var x = this.x + this.velocity[0] / length * this.speed;
+      var y = this.y + this.velocity[1] / length * this.speed;
+      var hitBox = frame.hitbox;
+      hitBox = box(x-frame.cx+hitBox.x, y-frame.cy+hitBox.y, hitBox.width, hitBox.height);
+      var collisions = collisionNet.getObjects(hitBox);
+      if(collisions.length === 0) {
+        this.x = x;
+        this.y = y;
+      }
     }
   },
   setState: function(state) {
@@ -390,6 +398,64 @@ function Sound(name) {
   return sound;
 }
 
+function PageCollisionNet() {
+  this.CELL_SIZE = 16;
+  var width = document.body.clientWidth;
+  var height = document.body.clientHeight;
+  this.rowCount = Math.ceil(height / this.CELL_SIZE)+1;
+  this.columnCount = Math.ceil(width / this.CELL_SIZE)+1;
+  this.rows = [];
+  for(var rowIndex=0; rowIndex<this.rowCount; rowIndex++) {
+    var row = [];
+    for(var columnIndex=0; columnIndex<this.columnCount; columnIndex++)
+      row.push({
+        row: rowIndex,
+        column: columnIndex,
+        objects: []
+      });
+    this.rows.push(row);
+  }
+}
+PageCollisionNet.prototype = {
+  getObjects: function(box) {
+    var result = [];
+    var fromCell = this.getCellCoordinates(box.x, box.y);
+    var toCell = this.getCellCoordinates(box.x+box.width-1, box.y+box.height-1);
+    for(var rowIndex=fromCell[1]; rowIndex<=toCell[1]; rowIndex++) {
+      var row = this.rows[rowIndex];
+      for(var columnIndex=fromCell[0]; columnIndex<=toCell[0]; columnIndex++) {
+        var objects = row[columnIndex].objects;
+        for(var objectIndex=0; objectIndex<objects.length; objectIndex++)
+          if(box.intersectsRect(objects[objectIndex].box))
+            result.push(objects[objectIndex]);
+      }
+    }
+    return result;
+  },
+  getCellCoordinates: function(x, y) {
+    x = Math.floor(x / this.CELL_SIZE);
+    y = Math.floor(y / this.CELL_SIZE);
+    return [
+      Math.min(x, this.columnCount), 
+      Math.min(y, this.rowCount)
+    ];
+  },
+  addObject: function(box, object) {
+    var fromCell = this.getCellCoordinates(box.x, box.y);
+    var toCell = this.getCellCoordinates(box.x+box.width-1, box.y+box.height-1);
+    for(var rowIndex=fromCell[1]; rowIndex<=toCell[1]; rowIndex++) {
+      var row = this.rows[rowIndex];
+      for(var columnIndex=fromCell[0]; columnIndex<=toCell[0]; columnIndex++) {
+        var cell = row[columnIndex];
+        cell['objects'].push({
+          box: box, 
+          object: object
+        });
+      }
+    }
+  }
+};
+
 function textNodesUnder(el){
   var n, a=[], walk=document.createTreeWalker(el,NodeFilter.SHOW_TEXT,null,false);
   while(n=walk.nextNode()) a.push(n);
@@ -496,28 +562,34 @@ window.onload = function() {
       frame.x, frame.y, frame.width, frame.height, 
       offsetX, offsetY, frame.width, frame.height);
     
-    //animate state machine
-    link.tick();
-    
     //collision detection
+    var collisionNet = new PageCollisionNet();
+    letters.forEach(function(letter) {
+      var rects = letter.element.getClientRects();
+      for(var rectIndex=0; rectIndex<rects.length; rectIndex++) {
+        var rect = rects[rectIndex];
+        var box = new Box(rect.x || rect.left, rect.y || rect.top, rect.width, rect.height);
+        collisionNet.addObject(box, letter);
+      }
+    });
+    link.tick(collisionNet);
     if(link.isAttacking()) {
       var attackBox = frame.attackbox;
       if(attackBox) {
         attackBox = box(link.x-frame.cx+attackBox.x, link.y-frame.cy+attackBox.y, attackBox.width, attackBox.height);
-        var newLetters = [];
         var hit = false;
-        letters.forEach(function(letter) {
-          letter.element.getClientRects().forEach(function(hitBox) {
-            if(attackBox.intersectsRect(hitBox)) {
-              hit = true;
-              letter.killed = true;
-              letter.element.style.visibility = 'hidden';
-              effects.push(new DestroyEffect(hitBox.x + hitBox.width/2, hitBox.y+hitBox.height/2));
-            } else
-              newLetters.push(letter);
-          });
+        var collisions = collisionNet.getObjects(attackBox);
+        collisions.forEach(function(object) {
+          var letter = object.object;
+          var hitBox = object.box;
+          if(letter.killed)
+            return;
+          hit = true;
+          letter.killed = true;
+          letter.element.style.visibility = 'hidden';
+          effects.push(new DestroyEffect(hitBox.x + hitBox.width/2, hitBox.y + hitBox.height/2));
         });
-        letters = newLetters;
+        letters = letters.filter(function(letter) { return !letter.killed; });
         if(hit) link.hit();
       }
     }
