@@ -6,10 +6,18 @@
   var Link = require('./Link');
   var DestroyEffect = require('./DestroyEffect');
   var PageCollisionNet = require('./PageCollisionNet');
+  var Rupee = require('./Rupee');
   
   onLoad(function() {
-    console.log('quak');
-  
+    var items = [];
+    setInterval(function() {
+      items.forEach(function(item) {
+        item.tick();
+      });
+      items = items.filter(function(item) { return !item.killed; });
+    }, 20);
+    setInterval(function() {items.push(new Rupee(Math.random()*200, Math.random()*200));}, 1000);
+    return;
     //entities
     var letters = letterify(document.body);
     var effects = [];

@@ -1,7 +1,8 @@
 TODO
 ====
-- Konvertierung zu Browserify
+- Rubine einsammeln
+- Rubinanzeige
+- Herzleiste
 - Gegner + Huhn
-- Rubine + einsammeln
 - Anlehnanimation einbinden (Wände)
 - Wände der Welt einbauen
