@@ -1,0 +1,22 @@
+{
+  "name": "link-bookmarklet",
+  "version": "1.0.0",
+  "description": "Link's awakening, the text adventure",
+  "main": "index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "canvas",
+    "zelda",
+    "bookmarklet",
+    "game"
+  ],
+  "author": "Markus Rudolph <markus.rudolph1@gmx.de> (http://openstoryboards.org)",
+  "license": "MIT",
+  "devDependencies": {
+    "grunt": "^0.4.5",
+    "grunt-browserify": "^4.0.1",
+    "grunt-contrib-watch": "^0.6.1"
+  }
+}
