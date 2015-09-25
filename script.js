@@ -388,6 +388,13 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
         if(collisions.length === 0) {
           this.x = x;
           this.y = y;
+        } else {
+          if(!this.isAttacking()) {
+            this.setState('PUSH');
+            this.onAnimationEnded(function() {
+              this.frameIndex = 0;
+            });
+          }
         }
       }
       this.render();
