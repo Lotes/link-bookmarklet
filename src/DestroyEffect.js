@@ -11,8 +11,11 @@
   var sounds = soundify(soundData);
   
   function DestroyEffect(x, y) {
+    this.x = x;
+    this.y = y;
     this.frameIndex = 0;
     this.animationEnded = false;
+    this.onAnimationEnded = null;
     var image = document.createElement('img');
     image.src = imageData;
     var canvas = document.createElement('canvas');
@@ -29,6 +32,7 @@
     };
     this.remove = function() {
       if(canvas !== null) {
+        if(this.onAnimationEnded !== null) this.onAnimationEnded();
         canvas.parentNode.removeChild(canvas);
         canvas = null;
       }

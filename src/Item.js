@@ -7,7 +7,7 @@
   var yBounce = [0, 1, 2, 4, 5, 6, 7, 7, 8, 9, 9, 9, 9, 9, 9, 8, 7, 7, 6, 5, 4, 2, 1, 0, 0, 1, 2, 3, 3, 3, 3, 1, 0, 0, 0, 0, 0, 0, 0];
   var shadows = [0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0];
   
-  function Item(x, y, typeName, imageData) {
+  function Item(x, y, typeName, imageData, collectSound) {
     var self = this;
     
     this.created = false;
@@ -15,6 +15,7 @@
     this.type = typeName;
     this.x = x;
     this.y = y;
+    this.collectSound = collectSound;
     
     this.visible = true;
     this.frameIndex = 0;
@@ -72,6 +73,11 @@
     remove: function() {
       if(this.canvas.parentNode !== null)
         this.canvas.parentNode.removeChild(this.canvas);
+    },
+    collect: function() {
+      this.killed = true;
+      this.remove();
+      this.collectSound.play();
     }
   };
 

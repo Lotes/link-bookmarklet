@@ -1,6 +1,5 @@
 TODO
 ====
-- Rubine einsammeln
 - Rubinanzeige
 - Herzleiste
 - Gegner + Huhn

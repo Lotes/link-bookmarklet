@@ -9,15 +9,6 @@
   var Rupee = require('./Rupee');
   
   onLoad(function() {
-    var items = [];
-    setInterval(function() {
-      items.forEach(function(item) {
-        item.tick();
-      });
-      items = items.filter(function(item) { return !item.killed; });
-    }, 20);
-    setInterval(function() {items.push(new Rupee(Math.random()*200, Math.random()*200));}, 1000);
-    return;
     //entities
     var letters = letterify(document.body);
     var effects = [];
@@ -77,12 +68,32 @@
             hit = true;
             letter.killed = true;
             letter.element.style.visibility = 'hidden';
-            effects.push(new DestroyEffect(hitBox.x + hitBox.width/2, hitBox.y + hitBox.height/2));
+            var effect = new DestroyEffect(hitBox.x + hitBox.width/2, hitBox.y + hitBox.height/2);
+            effect.onAnimationEnded = function() {
+              if(Math.random() > 0.9)
+                items.push(new Rupee(effect.x, effect.y));
+            };
+            effects.push(effect);
           });
           letters = letters.filter(function(letter) { return !letter.killed; });
           if(hit) link.hit();
         }
       }
+      
+      //items
+      items.forEach(function(item) { 
+        var frame = link.getFrame();
+        var attackBox = frame.attackbox;
+        if(attackBox)
+          attackBox = box(link.x-frame.cx+attackBox.x, link.y-frame.cy+attackBox.y, attackBox.width, attackBox.height);
+        var hitBox = frame.hitbox;
+        hitBox = box(link.x-frame.cx+hitBox.x, link.y-frame.cy+hitBox.y, hitBox.width, hitBox.height);
+        if(item.hitBox.intersectsRect(hitBox) || (attackBox && item.hitBox.intersectsRect(attackBox)))
+          item.collect();
+        else
+          item.tick(); 
+      });
+      items = items.filter(function(item) { return !item.killed; });
       
       //effects
       effects.forEach(function(effect) { effect.tick(); });
