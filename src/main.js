@@ -9,14 +9,20 @@
   var Rupee = require('./Rupee');
   var injectStyle = require('./style');
   var Dialog = require('./Dialog');
+  var Cucco = require('./Cucco');
   
   onLoad(function() {
     //entities
     var letters = letterify(document.body);
     var effects = [];
     var items = [];
-    var link = new Link();
+    var cucco = new Cucco(300, 300);
+    var link = new Link(100, 100);
     
+    setInterval(function() {
+      cucco.walkTo(Math.floor(Math.random() * document.body.clientWidth), Math.floor(Math.random() * document.body.clientHeight));
+    }, 1000);
+  
     //inject style (fonts)
     injectStyle();
     
@@ -64,10 +70,8 @@
       });
       link.tick(collisionNet);
       if(link.isAttacking()) {
-        var frame = link.getFrame();
-        var attackBox = frame.attackbox;
+        var attackBox = link.getAttackBox();
         if(attackBox) {
-          attackBox = box(link.x-frame.cx+attackBox.x, link.y-frame.cy+attackBox.y, attackBox.width, attackBox.height);
           var hit = false;
           var collisions = collisionNet.getObjects(attackBox);
           collisions.forEach(function(object) {
@@ -94,12 +98,8 @@
       
       //items
       items.forEach(function(item) { 
-        var frame = link.getFrame();
-        var attackBox = frame.attackbox;
-        if(attackBox)
-          attackBox = box(link.x-frame.cx+attackBox.x, link.y-frame.cy+attackBox.y, attackBox.width, attackBox.height);
-        var hitBox = frame.hitbox;
-        hitBox = box(link.x-frame.cx+hitBox.x, link.y-frame.cy+hitBox.y, hitBox.width, hitBox.height);
+        var attackBox = link.getAttackBox();
+        var hitBox = link.getHitBox();
         if(item.hitBox.intersectsRect(hitBox) || (attackBox && item.hitBox.intersectsRect(attackBox)))
           item.collect();
         else
@@ -111,6 +111,9 @@
       effects.forEach(function(effect) { effect.tick(); });
       var endedEffects = effects.filter(function(effect) { return effect.animationEnded; });
       effects = effects.filter(function(effect) { return !effect.animationEnded; });
+      
+      //cucco
+      cucco.tick(collisionNet);
     }, 100);
   });
 })();

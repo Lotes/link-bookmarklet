@@ -153,10 +153,10 @@
     }
   };
   
-  function Link() {
+  function Link(x, y) {
     this.speed = 3;
-    this.x = 100;
-    this.y = 100;
+    this.x = x;
+    this.y = y;
     this.direction = 'DOWN';
     this.state = 'STAND';
     this.frameIndex = 0;
@@ -209,6 +209,22 @@
         frame.x, frame.y, frame.width, frame.height, 
         offsetX, offsetY, frame.width, frame.height);
     },
+    getAttackBox: function(x, y) {
+      x = typeof(x) === 'number' ? x : this.x;
+      y = typeof(y) === 'number' ? y : this.y;
+      var frame = this.getFrame();
+      var attackBox = frame.attackbox;
+      if(!attackBox)
+        return null;
+      return box(x-frame.cx+attackBox.x, y-frame.cy+attackBox.y, attackBox.width, attackBox.height);
+    },
+    getHitBox: function(x, y) {
+      x = typeof(x) === 'number' ? x : this.x;
+      y = typeof(y) === 'number' ? y : this.y;
+      var frame = this.getFrame();
+      var hitBox = frame.hitbox;
+      return box(x-frame.cx+hitBox.x, y-frame.cy+hitBox.y, hitBox.width, hitBox.height);
+    },
     tick: function(collisionNet) {
       var animationLength = animations[this.direction][this.state].frames.length;
       if(animationLength > 1 && this.frameIndex+1 == animationLength)
@@ -217,11 +233,9 @@
         this.frameIndex = (this.frameIndex+1) % animationLength;
       var length = Math.sqrt(Math.pow(this.velocity[0], 2)+Math.pow(this.velocity[1], 2));
       if(length > 0 && this.state !== 'SPIN') {
-        var frame = animations[this.direction][this.state].frames[this.frameIndex];
         var x = this.x + this.velocity[0] / length * this.speed;
         var y = this.y + this.velocity[1] / length * this.speed;
-        var hitBox = frame.hitbox;
-        hitBox = box(x-frame.cx+hitBox.x, y-frame.cy+hitBox.y, hitBox.width, hitBox.height);
+        var hitBox = this.getHitBox(x, y);
         var collisions = collisionNet.getObjects(hitBox);
         if(collisions.length === 0) {
           this.x = x;
