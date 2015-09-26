@@ -4,3 +4,4 @@ TODO
 - Herzleiste
 - Gegner + Huhn
 - Wände der Welt einbauen
+- Gameover-Bildschirm

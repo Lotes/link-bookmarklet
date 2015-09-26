@@ -7,6 +7,8 @@
   var DestroyEffect = require('./DestroyEffect');
   var PageCollisionNet = require('./PageCollisionNet');
   var Rupee = require('./Rupee');
+  var injectStyle = require('./style');
+  var Dialog = require('./Dialog');
   
   onLoad(function() {
     //entities
@@ -14,6 +16,14 @@
     var effects = [];
     var items = [];
     var link = new Link();
+    
+    //inject style (fonts)
+    injectStyle();
+    
+    /*new Dialog('The called bookmarklet will install Link (The Legend Of Zelda) on the current page. Continue?', ['Yes', 'No'])
+      .show(function(answer) {
+        alert('Clicked: '+answer);
+      });*/
     
     //input handling
     var keyToAction = { 32: 'ATTACK', 37: 'LEFT', 38: 'UP', 39: 'RIGHT', 40: 'DOWN' };
