@@ -17,6 +17,7 @@
         subSpan.innerHTML = ch;  
         if(!/\s/.test(ch)) {
           letters.push({
+            type: 'letter',
             killed: false,
             element: subSpan
           });

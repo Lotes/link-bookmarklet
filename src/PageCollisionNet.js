@@ -1,10 +1,12 @@
 (function() {
+  var box = require('./Box');
+
   function PageCollisionNet() {
     this.CELL_SIZE = 16;
-    var width = document.body.clientWidth;
-    var height = document.body.clientHeight;
-    this.rowCount = Math.ceil(height / this.CELL_SIZE)+1;
-    this.columnCount = Math.ceil(width / this.CELL_SIZE)+1;
+    var width = Math.max(document.body.clientWidth, window.innerWidth);
+    var height = Math.max(document.body.clientHeight, window.innerHeight);
+    this.rowCount = Math.ceil(height / this.CELL_SIZE)+2;
+    this.columnCount = Math.ceil(width / this.CELL_SIZE)+2;
     this.rows = [];
     for(var rowIndex=0; rowIndex<this.rowCount; rowIndex++) {
       var row = [];
@@ -16,6 +18,10 @@
         });
       this.rows.push(row);
     }
+    this.addObject(box(-10, -10, width+20, 10), { type: 'wall' });
+    this.addObject(box(-10, +height, width+20, 10), { type: 'wall' });
+    this.addObject(box(-10, -10, 10, height+20), { type: 'wall' });
+    this.addObject(box(+width, -10, 10, height+20), { type: 'wall' });
   }
   PageCollisionNet.prototype = {
     getObjects: function(box) {
@@ -34,11 +40,11 @@
       return result;
     },
     getCellCoordinates: function(x, y) {
-      x = Math.floor(x / this.CELL_SIZE);
-      y = Math.floor(y / this.CELL_SIZE);
+      x = Math.floor(x / this.CELL_SIZE+1);
+      y = Math.floor(y / this.CELL_SIZE+1);
       return [
-        Math.min(x, this.columnCount), 
-        Math.min(y, this.rowCount)
+        Math.max(Math.min(x, this.columnCount), 0), 
+        Math.max(Math.min(y, this.rowCount), 0)
       ];
     },
     addObject: function(box, object) {

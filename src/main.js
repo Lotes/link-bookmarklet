@@ -71,6 +71,8 @@
           var hit = false;
           var collisions = collisionNet.getObjects(attackBox);
           collisions.forEach(function(object) {
+            if(object.object.type !== 'letter')
+              return;
             var letter = object.object;
             var hitBox = object.box;
             if(letter.killed)
