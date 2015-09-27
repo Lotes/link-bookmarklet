@@ -16,7 +16,7 @@
     var letters = letterify(document.body);
     var effects = [];
     var items = [];
-    var cucco = new Cucco(300, 300);
+    var cucco = new Cucco(100, 150);
     var link = new Link(100, 100);
     
     setInterval(function() {
@@ -69,6 +69,7 @@
         }
       });
       link.tick(collisionNet);
+      
       if(link.isAttacking()) {
         var attackBox = link.getAttackBox();
         if(attackBox) {
@@ -93,6 +94,9 @@
           });
           letters = letters.filter(function(letter) { return !letter.killed; });
           if(hit) link.hit();
+          
+          if(cucco.getHitBox().intersectsRect(attackBox))
+            cucco.hitBySword();
         }
       }
       
