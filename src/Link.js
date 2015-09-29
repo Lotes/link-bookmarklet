@@ -185,8 +185,8 @@
     },
     hit: function() {
       //TODO add animation when hitting something
-      //if(this.state !== 'SPIN' && this.state !== 'ATTACK')
-        //this.stopAttack();
+      if(this.state !== 'SPIN' && this.state !== 'ATTACK')
+        this.stopAttack();
     },
     triggerAnimationEnded: function() {
       if(this.callback !== null)

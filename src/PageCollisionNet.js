@@ -24,6 +24,9 @@
     this.addObject(box(+width, -10, 10, height+20), { type: 'wall' });
   }
   PageCollisionNet.prototype = {
+    collidesWith: function(box) {
+      return this.getObjects(box).length > 0;
+    },
     getObjects: function(box) {
       var result = [];
       var fromCell = this.getCellCoordinates(box.x, box.y);

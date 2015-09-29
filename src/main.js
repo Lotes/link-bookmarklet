@@ -95,8 +95,10 @@
           letters = letters.filter(function(letter) { return !letter.killed; });
           if(hit) link.hit();
           
-          if(cucco.getHitBox().intersectsRect(attackBox))
+          if(cucco.getHitBox().intersectsRect(attackBox)) {
             cucco.hitBySword();
+            link.hit();
+          }
         }
       }
       
@@ -117,7 +119,7 @@
       effects = effects.filter(function(effect) { return !effect.animationEnded; });
       
       //cucco
-      cucco.tick(collisionNet);
+      cucco.tick(collisionNet, link);
     }, 100);
   });
 })();

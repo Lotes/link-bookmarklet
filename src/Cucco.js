@@ -108,7 +108,7 @@
       this.animation = 'WALK';
       this.destination = [x, y];
     },
-    tick: function(collisionNet) {
+    tick: function(collisionNet, player) {
       var animations = this.invincible ? animationsInverted : animationsNormal;
       this.bounceIndex = (this.bounceIndex + 1) % yBounce.length;
       this.frameIndex = (this.frameIndex + 1) % animations[this.direction][this.animation].length;
@@ -117,31 +117,40 @@
       var time = new Date().getTime();
       var deltaSeconds = (time - this.lastTime)/1000;
       this.lastTime = time;
-      if(this.destination !== null) {
-        var v = [
-          this.destination[0] - this.x,
-          this.destination[1] - this.y,
-        ];
-        this.direction = v[0] <= 0 ? 'LEFT' : 'RIGHT';
-        var length = Math.sqrt(Math.pow(v[0], 2)+Math.pow(v[1], 2));
-        var newX, newY;
-        if(length > 1) { //TODO find better heuristic
-          newX = this.x + v[0] / length * deltaSeconds * speed;
-          newY = this.y + v[1] / length * deltaSeconds * speed;
-        } else {
-          newX = this.destination[0];
-          newY = this.destination[1];
-          this.destination = null;
-        }
-        
-        var collisions = collisionNet.getObjects(this.getHitBox(newX, newY));
-        if(collisions.length === 0) {
-          this.x = newX;
-          this.y = newY;
-        }
-      }
       
+      var v = [0, 0];
+      if(this.state === 'HAPPY') {
+        if(this.destination !== null) {
+          v = [
+            this.destination[0] - this.x,
+            this.destination[1] - this.y,
+          ];
+        }
+      } else {
+        v = [
+          this.x - player.x,
+          this.y - player.y
+        ];
+      }
+    
+      this.direction = v[0] <= 0 ? 'LEFT' : 'RIGHT';
+      var length = Math.sqrt(Math.pow(v[0], 2)+Math.pow(v[1], 2));
+      if(length > 0) {
+        var newX = this.x + v[0] / length * deltaSeconds * speed;
+        var newY = this.y + v[1] / length * deltaSeconds * speed;
+        this.tryMoveTo(collisionNet, newX, newY);
+      }
       this.render();
+    },
+    tryMoveTo: function(collisionNet, newX, newY) {
+      if(!collisionNet.collidesWith(this.getHitBox(newX, newY))) {
+        this.x = newX;
+        this.y = newY;
+      } else if(!collisionNet.collidesWith(this.getHitBox(this.x, newY))) {
+        this.y = newY;
+      } else if(!collisionNet.collidesWith(this.getHitBox(newX, this.y))) {
+        this.x = newX;
+      }
     },
     remove: function() {},
     hitBySword: function() {
@@ -149,7 +158,7 @@
       if(self.invincible)
         return;
       sounds.CUCCO.play();
-      this.hitCountdown--;
+      this.hitCountdown = Math.max(0, this.hitCountdown - 1);
       this.state = this.hitCountdown > 0 ? 'FEAR' : 'HELP';
       self.invincible = true;
       setTimeout(function() {
