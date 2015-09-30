@@ -22,8 +22,8 @@
     window.style.fontFamily = 'zelda';
     window.style.color = 'white';
     window.style.textAlign = 'left';
-    window.style.fontSize = '10px';
-    window.style.width = '200px';
+    window.style.fontSize = '14px';
+    window.style.width = '400px';
     window.style.padding = '5px';
     window.style.margin = 'auto';
     
@@ -38,7 +38,7 @@
       answerSpan.style.fontWeight = 'bold';
       addEvent(answerSpan, 'click', function() {
         self.overlay.style.visibility = 'hidden';
-        if(self.onCommit !== null)
+        if(self.onCommit)
           self.onCommit(answer);
       });
       answersDiv.appendChild(answerSpan);

@@ -22,7 +22,8 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
 },{}],2:[function(require,module,exports){
 (function() {
   var FEAR_DISTANCE = 100;
-
+  var COUNTDOWN = 34;
+  
   var soundify = require('./soundify');
   var box = require('./Box');
   var invertImage = require('./invertImage');
@@ -74,7 +75,7 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
     this.x = x;
     this.y = y;
   
-    this.hitCountdown = 3; 
+    this.hitCountdown = COUNTDOWN; 
     this.frameIndex = 0;
     this.bounceIndex = 0;
     this.direction = 'LEFT'; //or RIGHT
@@ -304,8 +305,8 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
     window.style.fontFamily = 'zelda';
     window.style.color = 'white';
     window.style.textAlign = 'left';
-    window.style.fontSize = '10px';
-    window.style.width = '200px';
+    window.style.fontSize = '14px';
+    window.style.width = '400px';
     window.style.padding = '5px';
     window.style.margin = 'auto';
     
@@ -320,7 +321,7 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
       answerSpan.style.fontWeight = 'bold';
       addEvent(answerSpan, 'click', function() {
         self.overlay.style.visibility = 'hidden';
-        if(self.onCommit !== null)
+        if(self.onCommit)
           self.onCommit(answer);
       });
       answersDiv.appendChild(answerSpan);
@@ -962,6 +963,7 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
     }
     addEvent(window, 'resize', resize);
     resize();
+    panel.className = 'bookmarklet';
     panel.style.overflow = 'hidden';
     panel.style.position = 'absolute';
     panel.style.left = '0px';
@@ -1058,7 +1060,7 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
     return [Math.floor(Math.random() * width), Math.floor(Math.random() * height)];
   }
   
-  onLoad(function() {
+  function setup() {
     //entities
     var letters = letterify(document.body);
     var effects = [];
@@ -1081,14 +1083,6 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
     }, 500);
     
     var link = new Link(100, 100);
-  
-    //inject style (fonts)
-    injectStyle();
-    
-    /*new Dialog('The called bookmarklet will install Link (The Legend Of Zelda) on the current page. Continue?', ['Yes', 'No'])
-      .show(function(answer) {
-        alert('Clicked: '+answer);
-      });*/
     
     //input handling
     var keyToAction = { 32: 'ATTACK', 37: 'LEFT', 38: 'UP', 39: 'RIGHT', 40: 'DOWN' };
@@ -1195,7 +1189,7 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
           ];
           var side = sides[Math.floor(Math.random() * 4)];
           var start = side[0] === 'X' 
-            ? [Math.floor(Math.random(side[1])), side[2]]
+            ? [Math.floor(Math.random()*side[1]), side[2]]
             : [side[1], Math.floor(Math.random()*side[2])];
           var dest = [
             link.x + 10000*(link.x - start[0]),
@@ -1218,6 +1212,22 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
       });
       attackingCuccos = newAttackingCuccos;
     }, 100);
+  }
+  
+  onLoad(function() {
+    //inject style (fonts)
+    injectStyle();
+    
+    new Dialog('This bookmarklet will install Link (The Legend Of Zelda) on the current page. Continue?', ['Yes', 'No'])
+    .show(function(answer) {
+      if(answer === 'Yes') {
+        new Dialog('Use ARROW keys to navigate and SPACE to attack.', ['OK']).show();
+        setup();
+      } else {
+        var bookmarklet = document.getElementsByClassName('bookmarklet')[0];
+        document.body.removeChild(bookmarklet);
+      }
+    });
   });
 })();
 },{"./Box":1,"./Cucco":2,"./DestroyEffect":3,"./Dialog":4,"./Link":6,"./PageCollisionNet":7,"./Rupee":8,"./addEvent":10,"./letterify":13,"./onLoad":15,"./style":17}],15:[function(require,module,exports){

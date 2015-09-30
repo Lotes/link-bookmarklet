@@ -20,7 +20,7 @@
     return [Math.floor(Math.random() * width), Math.floor(Math.random() * height)];
   }
   
-  onLoad(function() {
+  function setup() {
     //entities
     var letters = letterify(document.body);
     var effects = [];
@@ -43,14 +43,6 @@
     }, 500);
     
     var link = new Link(100, 100);
-  
-    //inject style (fonts)
-    injectStyle();
-    
-    /*new Dialog('The called bookmarklet will install Link (The Legend Of Zelda) on the current page. Continue?', ['Yes', 'No'])
-      .show(function(answer) {
-        alert('Clicked: '+answer);
-      });*/
     
     //input handling
     var keyToAction = { 32: 'ATTACK', 37: 'LEFT', 38: 'UP', 39: 'RIGHT', 40: 'DOWN' };
@@ -157,7 +149,7 @@
           ];
           var side = sides[Math.floor(Math.random() * 4)];
           var start = side[0] === 'X' 
-            ? [Math.floor(Math.random(side[1])), side[2]]
+            ? [Math.floor(Math.random()*side[1]), side[2]]
             : [side[1], Math.floor(Math.random()*side[2])];
           var dest = [
             link.x + 10000*(link.x - start[0]),
@@ -180,5 +172,21 @@
       });
       attackingCuccos = newAttackingCuccos;
     }, 100);
+  }
+  
+  onLoad(function() {
+    //inject style (fonts)
+    injectStyle();
+    
+    new Dialog('This bookmarklet will install Link (The Legend Of Zelda) on the current page. Continue?', ['Yes', 'No'])
+    .show(function(answer) {
+      if(answer === 'Yes') {
+        new Dialog('Use ARROW keys to navigate and SPACE to attack.', ['OK']).show();
+        setup();
+      } else {
+        var bookmarklet = document.getElementsByClassName('bookmarklet')[0];
+        document.body.removeChild(bookmarklet);
+      }
+    });
   });
 })();

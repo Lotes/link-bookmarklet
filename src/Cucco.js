@@ -1,6 +1,7 @@
 (function() {
   var FEAR_DISTANCE = 100;
-
+  var COUNTDOWN = 34;
+  
   var soundify = require('./soundify');
   var box = require('./Box');
   var invertImage = require('./invertImage');
@@ -52,7 +53,7 @@
     this.x = x;
     this.y = y;
   
-    this.hitCountdown = 3; 
+    this.hitCountdown = COUNTDOWN; 
     this.frameIndex = 0;
     this.bounceIndex = 0;
     this.direction = 'LEFT'; //or RIGHT

@@ -22,6 +22,7 @@
     }
     addEvent(window, 'resize', resize);
     resize();
+    panel.className = 'bookmarklet';
     panel.style.overflow = 'hidden';
     panel.style.position = 'absolute';
     panel.style.left = '0px';
