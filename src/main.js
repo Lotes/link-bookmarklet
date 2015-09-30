@@ -1,4 +1,7 @@
 (function() {  
+  var CUCCO_COUNT = 5;
+  var CUCCO_SPAWN_INTERVAL = 1000;
+
   var addEvent = require('./addEvent');
   var box = require('./Box');
   var letterify = require('./letterify');
@@ -11,17 +14,35 @@
   var Dialog = require('./Dialog');
   var Cucco = require('./Cucco');
   
+  function randomPosition() {
+    var width = Math.max(window.innerWidth, document.body.clientWidth);
+    var height = Math.max(window.innerHeight, document.body.clientHeight);
+    return [Math.floor(Math.random() * width), Math.floor(Math.random() * height)];
+  }
+  
   onLoad(function() {
     //entities
     var letters = letterify(document.body);
     var effects = [];
     var items = [];
-    var cucco = new Cucco(100, 150);
-    var link = new Link(100, 100);
+    var cuccos = [];
+    var attackingCuccos = [];
     
+    //prepare cuccos
+    for(var cuccoIndex = 0; cuccoIndex < CUCCO_COUNT; cuccoIndex++) {
+      var pos = randomPosition();
+      cuccos.push(new Cucco(pos[0], pos[1]));
+    }
     setInterval(function() {
-      cucco.walkTo(Math.floor(Math.random() * document.body.clientWidth), Math.floor(Math.random() * document.body.clientHeight));
-    }, 1000);
+      cuccos.forEach(function(cucco) {
+        if(Math.random() > 0.6) {
+          var pos = randomPosition();
+          cucco.walkTo(pos[0], pos[1]);
+        }
+      });
+    }, 500);
+    
+    var link = new Link(100, 100);
   
     //inject style (fonts)
     injectStyle();
@@ -57,6 +78,7 @@
       }
     });
     
+    var lastCuccoSpawnTime = 0;
     setInterval(function() {      
       //collision detection
       var collisionNet = new PageCollisionNet();
@@ -95,10 +117,12 @@
           letters = letters.filter(function(letter) { return !letter.killed; });
           if(hit) link.hit();
           
-          if(cucco.getHitBox().intersectsRect(attackBox)) {
-            cucco.hitBySword();
-            link.hit();
-          }
+          cuccos.forEach(function(cucco) {
+            if(cucco.getHitBox().intersectsRect(attackBox)) {
+              cucco.hitBySword();
+              link.hit();
+            }
+          });
         }
       }
       
@@ -119,7 +143,42 @@
       effects = effects.filter(function(effect) { return !effect.animationEnded; });
       
       //cucco
-      cucco.tick(collisionNet, link);
+      var time = new Date().getTime();
+      var width = Math.max(window.innerWidth, document.body.clientWidth);
+      var height = Math.max(window.innerHeight, document.body.clientHeight);
+      cuccos.forEach(function(cucco) {
+        cucco.tick(collisionNet, link);  
+        if(cucco.state === 'HELP' && time > lastCuccoSpawnTime + CUCCO_SPAWN_INTERVAL) {
+          var sides = [
+            ['X', width, 0],
+            ['Y', 0, height],
+            ['X', width, height],
+            ['Y', width, height],
+          ];
+          var side = sides[Math.floor(Math.random() * 4)];
+          var start = side[0] === 'X' 
+            ? [Math.floor(Math.random(side[1])), side[2]]
+            : [side[1], Math.floor(Math.random()*side[2])];
+          var dest = [
+            link.x + 10000*(link.x - start[0]),
+            link.y + 10000*(link.y - start[1])
+          ];
+          attackingCuccos.push(new Cucco(start[0], start[1], dest));
+          lastCuccoSpawnTime = time;
+        }
+      });
+      
+      attackingCuccos.forEach(function(cucco) {
+        cucco.tick(collisionNet, link);
+      });
+      var newAttackingCuccos = [];
+      attackingCuccos.forEach(function(cucco) {
+        if(cucco.x >= 0 && cucco.x <= width && cucco.y>=0 && cucco.y <= height)
+          newAttackingCuccos.push(cucco);
+        else
+          cucco.remove();
+      });
+      attackingCuccos = newAttackingCuccos;
     }, 100);
   });
 })();

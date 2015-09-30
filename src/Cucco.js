@@ -1,4 +1,6 @@
 (function() {
+  var FEAR_DISTANCE = 100;
+
   var soundify = require('./soundify');
   var box = require('./Box');
   var invertImage = require('./invertImage');
@@ -45,7 +47,7 @@
   };
   var sounds = soundify(soundData);
   
-  function Cucco(x, y) {
+  function Cucco(x, y, destination) {
     this.x = x;
     this.y = y;
   
@@ -53,7 +55,7 @@
     this.frameIndex = 0;
     this.bounceIndex = 0;
     this.direction = 'LEFT'; //or RIGHT
-    this.state = 'HAPPY'; //or FEAR, HELP
+    this.state = destination ? 'ATTACK' : 'HAPPY'; //or FEAR, HELP, ATTACK
     this.animation = 'STAND'; //or WALK
     this.destination = null;
     this.lastTime = new Date().getTime();
@@ -63,10 +65,13 @@
     this.image.src = imageData;
     this.canvas = document.createElement('canvas');
     this.canvas.width = 15;
-    this.canvas.height = 20;
+    this.canvas.height = 50;
     this.canvas.style.position = "absolute";
     this.context = this.canvas.getContext('2d');
     document.body.appendChild(this.canvas);
+    
+    if(destination)
+      this.walkTo(destination[0], destination[1]);
     
     this.render();
   }
@@ -83,14 +88,15 @@
       return box(x-frame.cx+hitBox.x, y-frame.cy+hitBox.y, hitBox.width, hitBox.height);
     },
     render: function() {
-      this.canvas.style.left = Math.floor(this.x-this.canvas.width/2)+'px';
-      this.canvas.style.top = Math.floor(this.y-this.canvas.height)+'px';
       var frame = this.getFrame();
-      var bounce = this.animation === 'WALK' && this.state === 'HAPPY' ? yBounce[this.bounceIndex] : 0;
-      var offsetX = Math.floor(this.canvas.width/2)-frame.cx;
-      var offsetY = this.canvas.height-frame.cy-bounce;
-      this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-      if(bounce > 0) {
+      this.canvas.style.left = Math.floor(this.x-this.canvas.width/2)+'px';
+      if(this.state === 'ATTACK') {
+        var HEIGHT = 30;
+        this.canvas.style.top = Math.floor(this.y-this.canvas.height+HEIGHT)+'px';
+        var offsetX = Math.floor(this.canvas.width/2)-frame.cx;
+        var offsetY = this.canvas.height-frame.cy-HEIGHT;
+        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+          
         var radius = 5;
         this.context.translate(7, this.canvas.height-radius/2);
         this.context.scale(1, 0.5);
@@ -99,10 +105,30 @@
         this.context.arc(0, 0, radius, 0, 2*Math.PI, false);
         this.context.fill();
         this.context.setTransform(1, 0, 0, 1, 0, 0);
+        
+        this.context.drawImage(this.image, 
+          frame.x, frame.y, frame.width, frame.height, 
+          offsetX, offsetY, frame.width, frame.height);
+      } else {
+        this.canvas.style.top = Math.floor(this.y-this.canvas.height)+'px';
+        var bounce = this.animation === 'WALK' && this.state === 'HAPPY' ? yBounce[this.bounceIndex] : 0;
+        var offsetX = Math.floor(this.canvas.width/2)-frame.cx;
+        var offsetY = this.canvas.height-frame.cy-bounce;
+        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        if(bounce > 0) {
+          var radius = 5;
+          this.context.translate(7, this.canvas.height-radius/2);
+          this.context.scale(1, 0.5);
+          this.context.beginPath();
+          this.context.fillStyle = 'rgba(0,0,0,0.5)';
+          this.context.arc(0, 0, radius, 0, 2*Math.PI, false);
+          this.context.fill();
+          this.context.setTransform(1, 0, 0, 1, 0, 0);
+        }
+        this.context.drawImage(this.image, 
+          frame.x, frame.y, frame.width, frame.height, 
+          offsetX, offsetY, frame.width, frame.height);
       }
-      this.context.drawImage(this.image, 
-        frame.x, frame.y, frame.width, frame.height, 
-        offsetX, offsetY, frame.width, frame.height);
     },
     walkTo: function(x, y) {
       this.animation = 'WALK';
@@ -113,37 +139,37 @@
       this.bounceIndex = (this.bounceIndex + 1) % yBounce.length;
       this.frameIndex = (this.frameIndex + 1) % animations[this.direction][this.animation].length;
       
-      var speed = this.state === 'HAPPY' ? 20 : 40;
+      var speed = this.state === 'HAPPY' ? 20 : (this.state === 'ATTACK' ? 80 : 40);
       var time = new Date().getTime();
       var deltaSeconds = (time - this.lastTime)/1000;
       this.lastTime = time;
       
-      var v = [0, 0];
-      if(this.state === 'HAPPY') {
+      var v = [
+        this.x - player.x,
+        this.y - player.y
+      ];
+      var length = Math.sqrt(Math.pow(v[0], 2)+Math.pow(v[1], 2));
+      if(this.state === 'HAPPY' || this.state === 'ATTACK' || length >= FEAR_DISTANCE) {
         if(this.destination !== null) {
           v = [
             this.destination[0] - this.x,
             this.destination[1] - this.y,
           ];
+          length = Math.sqrt(Math.pow(v[0], 2)+Math.pow(v[1], 2));
         }
-      } else {
-        v = [
-          this.x - player.x,
-          this.y - player.y
-        ];
       }
     
       this.direction = v[0] <= 0 ? 'LEFT' : 'RIGHT';
-      var length = Math.sqrt(Math.pow(v[0], 2)+Math.pow(v[1], 2));
-      if(length > 0) {
-        var newX = this.x + v[0] / length * deltaSeconds * speed;
-        var newY = this.y + v[1] / length * deltaSeconds * speed;
-        this.tryMoveTo(collisionNet, newX, newY);
-      }
+      var newX = this.x + v[0] / length * deltaSeconds * speed;
+      var newY = this.y + v[1] / length * deltaSeconds * speed;
+      this.tryMoveTo(collisionNet, newX, newY);
       this.render();
     },
     tryMoveTo: function(collisionNet, newX, newY) {
-      if(!collisionNet.collidesWith(this.getHitBox(newX, newY))) {
+      if(this.state === 'ATTACK') { //no collision detection for attacking cuccos
+        this.x = newX;
+        this.y = newY;
+      } else if(!collisionNet.collidesWith(this.getHitBox(newX, newY))) {
         this.x = newX;
         this.y = newY;
       } else if(!collisionNet.collidesWith(this.getHitBox(this.x, newY))) {
@@ -152,7 +178,12 @@
         this.x = newX;
       }
     },
-    remove: function() {},
+    remove: function() {
+      if(this.canvas !== null) {
+        this.canvas.parentNode.removeChild(this.canvas);
+        this.canvas = null;
+      }
+    },
     hitBySword: function() {
       var self = this;
       if(self.invincible)
