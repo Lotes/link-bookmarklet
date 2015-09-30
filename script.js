@@ -1085,7 +1085,18 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
     var link = new Link(100, 100);
     
     //input handling
-    var keyToAction = { 32: 'ATTACK', 37: 'LEFT', 38: 'UP', 39: 'RIGHT', 40: 'DOWN' };
+    var keyToAction = { 
+      32: 'ATTACK', 
+      80: 'ATTACK',
+      37: 'LEFT', 
+      65: 'LEFT',
+      38: 'UP', 
+      87: 'UP',
+      39: 'RIGHT', 
+      68: 'RIGHT',
+      40: 'DOWN',
+      83: 'DOWN'
+    };
     var isDown = {
       ATTACK: false,
       LEFT: false,
@@ -1221,7 +1232,7 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
     new Dialog('This bookmarklet will install Link (The Legend Of Zelda) on the current page. Continue?', ['Yes', 'No'])
     .show(function(answer) {
       if(answer === 'Yes') {
-        new Dialog('Use ARROW keys to navigate and SPACE to attack.', ['OK']).show();
+        new Dialog('Use ARROW or WASD keys to navigate and SPACE or P key to attack.', ['OK']).show();
         setup();
       } else {
         var bookmarklet = document.getElementsByClassName('bookmarklet')[0];
@@ -1234,7 +1245,10 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
 (function() {
   var addEvent = require('./addEvent');
   function onLoad(callback) {
-    addEvent(window, 'load', callback);
+    if(document && document.readyState === "complete")
+      callback();
+    else
+      addEvent(window, 'load', callback);
   }
   module.exports = onLoad;
 })();
