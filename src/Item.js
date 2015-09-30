@@ -1,5 +1,6 @@
 (function() {
   var box = require('./Box');
+  var appendChild = require('./appendChild');
 
   var ITEM_LIFE_SPAN = 10000; //ms
   var ITEM_BLINK_TIME = 2000;
@@ -24,7 +25,7 @@
     this.canvas = document.createElement('canvas');
     this.canvas.style.position = "absolute";
     this.context = this.canvas.getContext('2d');
-    document.body.appendChild(this.canvas);
+    appendChild(this.canvas);
     
     this.image = document.createElement('img');
     this.image.onload = function() {

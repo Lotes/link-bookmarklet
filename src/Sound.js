@@ -1,5 +1,5 @@
 (function() {
-  var onLoad = require('./onLoad');
+  var appendChild = require('./appendChild');
 
   function Sound(name, mp3Data, oggData) {
     this.element = document.createElement('audio');
@@ -19,9 +19,7 @@
     }
 
     var self = this;
-    onLoad(function() {
-      document.body.appendChild(self.element);
-    });
+    appendChild(self.element);
   }
   
   Sound.prototype = {

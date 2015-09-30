@@ -1,5 +1,6 @@
 (function() {
   var addEvent = require('./addEvent');
+  var appendChild = require('./appendChild');
 
   function Dialog(content, answers) {
     answers = answers || [];
@@ -46,7 +47,7 @@
     
     this.overlay.appendChild(window);
     
-    document.body.appendChild(this.overlay);
+    appendChild(this.overlay);
   }
   Dialog.prototype = {
     show: function(resultCallback) {
